@@ -27,13 +27,13 @@ const AddDoctor = () => {
 
         try {
 
-            if (!docImg) {
-                return toast.error('Image Not Selected')
-            }
+            // Image optional in demo mode
 
             const formData = new FormData();
 
-            formData.append('image', docImg)
+            if (docImg) {
+                formData.append('image', docImg)
+            }
             formData.append('name', name)
             formData.append('email', email)
             formData.append('password', password)

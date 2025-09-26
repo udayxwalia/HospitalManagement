@@ -8,12 +8,12 @@ import { v2 as cloudinary } from 'cloudinary'
 import stripe from "stripe";
 import razorpay from 'razorpay';
 
-// Gateway Initialize
-const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY)
-const razorpayInstance = new razorpay({
+// Gateway Initialize (optional in demo). Only instantiate if keys present
+const stripeInstance = process.env.STRIPE_SECRET_KEY ? new stripe(process.env.STRIPE_SECRET_KEY) : null
+const razorpayInstance = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) ? new razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
-})
+}) : null
 
 // API to register user
 const registerUser = async (req, res) => {
@@ -247,6 +247,9 @@ const paymentRazorpay = async (req, res) => {
         }
 
         // creating options for razorpay payment
+        if (!razorpayInstance) {
+            return res.json({ success: false, message: 'Online payment disabled in demo' })
+        }
         const options = {
             amount: appointmentData.amount * 100,
             currency: process.env.CURRENCY,
@@ -267,6 +270,9 @@ const paymentRazorpay = async (req, res) => {
 // API to verify payment of razorpay
 const verifyRazorpay = async (req, res) => {
     try {
+        if (!razorpayInstance) {
+            return res.json({ success: false, message: 'Online payment disabled in demo' })
+        }
         const { razorpay_order_id } = req.body
         const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
 
@@ -309,6 +315,9 @@ const paymentStripe = async (req, res) => {
             quantity: 1
         }]
 
+        if (!stripeInstance) {
+            return res.json({ success: false, message: 'Online payment disabled in demo' })
+        }
         const session = await stripeInstance.checkout.sessions.create({
             success_url: `${origin}/verify?success=true&appointmentId=${appointmentData._id}`,
             cancel_url: `${origin}/verify?success=false&appointmentId=${appointmentData._id}`,

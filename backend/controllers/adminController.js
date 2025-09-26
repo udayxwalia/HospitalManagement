@@ -84,9 +84,12 @@ const addDoctor = async (req, res) => {
         const salt = await bcrypt.genSalt(10); // the more no. round the more time it will take
         const hashedPassword = await bcrypt.hash(password, salt)
 
-        // upload image to cloudinary
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" })
-        const imageUrl = imageUpload.secure_url
+        // upload image to cloudinary (optional in demo). If no file or cloudinary not configured, use placeholder
+        let imageUrl = "https://via.placeholder.com/150";
+        if (imageFile && process.env.CLOUDINARY_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_SECRET_KEY) {
+            const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" })
+            imageUrl = imageUpload.secure_url
+        }
 
         const doctorData = {
             name,
